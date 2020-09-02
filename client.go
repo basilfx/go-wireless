@@ -133,7 +133,7 @@ func (cl *Client) Connect(net Network) (Network, error) {
 
 	switch ev.Name {
 	case EventConnected:
-		return net, cl.SaveConfig()
+		return net, nil
 	case EventNetworkNotFound:
 		return net, ErrSSIDNotFound
 	case EventAuthReject:
