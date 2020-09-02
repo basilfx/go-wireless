@@ -56,6 +56,13 @@ net := NewNetwork("FBI Surveillance Van #4", "secretpass")
 net, err := wc.Connect(net)
 ```
 
+Create an access point:
+
+```golang
+net := NewAccessPoint("Free WiFi", "nopassword")
+net, err := wc.Create(net)
+```
+
 Disable networks:
 
 ```golang
