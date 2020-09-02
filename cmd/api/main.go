@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/basilfx/go-wireless/api"
 	"github.com/gin-gonic/gin"
-	"github.com/theojulienne/go-wireless/api"
 )
 
 func main() {

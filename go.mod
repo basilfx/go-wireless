@@ -1,4 +1,4 @@
-module github.com/theojulienne/go-wireless
+module github.com/basilfx/go-wireless
 
 go 1.14
 
