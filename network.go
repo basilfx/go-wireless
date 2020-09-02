@@ -187,6 +187,10 @@ func (nets Networks) FindCurrent() (Network, bool) {
 func (net Network) Attributes(sep, indent string) []string {
 	lines := []string{}
 
+	if net.IDStr != "" {
+		lines = append(lines, indent+"id_str"+sep+quote(net.IDStr))
+	}
+
 	lines = append(lines, indent+"ssid"+sep+quote(net.SSID))
 	switch {
 	case net.Known && net.PSK != "":
