@@ -1,6 +1,10 @@
 package wireless
 
-import "strings"
+import (
+	"errors"
+	"strconv"
+	"strings"
+)
 
 // This file contains components from github.com/brlbil/wpaclient
 //
@@ -26,7 +30,7 @@ import "strings"
 
 // NewNamedNetwork will create a new network with the given parameters
 func NewNamedNetwork(name, ssid, psk string) Network {
-	n := Network{IDStr: name, SSID: ssid, PSK: psk}
+	n := Network{IDStr: name, SSID: ssid, PSK: psk, Mode: ModeInfrastructure}
 	if psk == "" {
 		n.KeyMgmt = "NONE"
 	}
@@ -50,18 +54,44 @@ func NewDisabledNetwork(ssid, psk string) Network {
 	return n
 }
 
+// NewNamedAccessPoint will create a new access point network with the given parameters
+func NewNamedAccessPoint(name, ssid, psk string) Network {
+	n := Network{IDStr: name, SSID: ssid, PSK: psk, Mode: ModeAccessPoint}
+	if psk == "" {
+		n.KeyMgmt = "NONE"
+	}
+	return n
+}
+
+// NewAccessPoint will create a new access point network with the given parameters
+func NewAccessPoint(ssid, psk string) Network {
+	return NewNamedAccessPoint(ssid, ssid, psk)
+}
+
+// NetworkMode represets the different network modes
+type NetworkMode int
+
+// NetworkMode values
+const (
+	ModeInfrastructure = NetworkMode(0)
+	ModeAdHoc          = NetworkMode(1)
+	ModeAccessPoint    = NetworkMode(2)
+	ModeMesh           = NetworkMode(5)
+)
+
 // Network represents a known network
 type Network struct {
 	Known bool `json:"known"`
 
-	ID       int      `json:"id"`
-	IDStr    string   `json:"id_str"`
-	KeyMgmt  string   `json:"key_mgmt"`
-	SSID     string   `json:"ssid"`
-	BSSID    string   `json:"bssid"`
-	ScanSSID bool     `json:"scan_ssid"`
-	PSK      string   `json:"psk"`
-	Flags    []string `json:"flags"`
+	ID       int         `json:"id"`
+	IDStr    string      `json:"id_str"`
+	KeyMgmt  string      `json:"key_mgmt"`
+	SSID     string      `json:"ssid"`
+	BSSID    string      `json:"bssid"`
+	ScanSSID bool        `json:"scan_ssid"`
+	PSK      string      `json:"psk"`
+	Flags    []string    `json:"flags"`
+	Mode     NetworkMode `json:"mode"`
 }
 
 // IsDisabled will return true if the network is disabled
@@ -94,6 +124,23 @@ func (net *Network) populateAttrs(cl attributeGetter) error {
 		return err
 	}
 	net.SSID = unquote(v)
+
+	v, err = cl.GetNetworkAttr(net.ID, "mode")
+	if err != nil {
+		return err
+	}
+	switch v {
+	case "0":
+		net.Mode = ModeInfrastructure
+	case "1":
+		net.Mode = ModeAdHoc
+	case "2":
+		net.Mode = ModeInfrastructure
+	case "5":
+		net.Mode = ModeMesh
+	default:
+		return errors.New("mode " + v + " unsupported")
+	}
 
 	v, err = cl.GetNetworkAttr(net.ID, "id_str")
 	if err != nil {
@@ -191,6 +238,7 @@ func (net Network) Attributes(sep, indent string) []string {
 		lines = append(lines, indent+"id_str"+sep+quote(net.IDStr))
 	}
 
+	lines = append(lines, indent+"mode"+sep+strconv.Itoa(int(net.Mode)))
 	lines = append(lines, indent+"ssid"+sep+quote(net.SSID))
 	switch {
 	case net.Known && net.PSK != "":

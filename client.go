@@ -119,6 +119,10 @@ func (cl *Client) Networks() (nets Networks, err error) {
 
 // Connect to a new or existing network
 func (cl *Client) Connect(net Network) (Network, error) {
+	if net.Mode != ModeInfrastructure {
+		return net, errors.New("not an infrastructure network")
+	}
+
 	net, err := cl.AddOrUpdateNetwork(net)
 	if err != nil {
 		return net, err
@@ -142,6 +146,32 @@ func (cl *Client) Connect(net Network) (Network, error) {
 		return net, ErrDisconnected
 	case EventAssocReject:
 		return net, ErrAssocRejected
+	}
+
+	return net, errors.New("failed to catch event " + ev.Name)
+}
+
+// Create an access point network
+func (cl *Client) Create(net Network) (Network, error) {
+	if net.Mode != ModeAccessPoint {
+		return net, errors.New("not an access point network")
+	}
+
+	net, err := cl.AddOrUpdateNetwork(net)
+	if err != nil {
+		return net, err
+	}
+
+	sub := cl.conn.Subscribe(ApEventEnabled)
+	if err := cl.EnableNetwork(net.ID); err != nil {
+		return net, err
+	}
+
+	ev := <-sub.Next()
+
+	switch ev.Name {
+	case ApEventEnabled:
+		return net, nil
 	}
 
 	return net, errors.New("failed to catch event " + ev.Name)

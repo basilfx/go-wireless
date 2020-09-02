@@ -72,7 +72,7 @@ func (c *Conn) processMessage(bytesRead int, data []byte, err error) {
 	}
 
 	var ev Event
-	if strings.Index(msg, "<3>CTRL-") == 0 {
+	if strings.HasPrefix(msg, "<3>CTRL-") || strings.HasPrefix(msg, "<3>AP-") {
 		ev, err = NewEventFromMsg(msg)
 		if err != nil {
 			c.log.Println("Error:", err)
