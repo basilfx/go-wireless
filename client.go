@@ -65,6 +65,16 @@ func (cl *Client) Status() (State, error) {
 	return s, nil
 }
 
+// SignalPoll will poll the current signal level
+func (cl *Client) SignalPoll() (Signal, error) {
+	data, err := cl.conn.SendCommand(CmdSignalPoll)
+	if err != nil {
+		return Signal{}, err
+	}
+	s := NewSignal(data)
+	return s, nil
+}
+
 // Scan will scan for networks and return the APs it finds
 func (cl *Client) Scan() (nets APs, err error) {
 	err = cl.conn.SendCommandBool(CmdScan)
