@@ -92,7 +92,7 @@ func (c *Conn) init() error {
 		return err
 	}
 
-	c.lsockname = fmt.Sprintf("/tmp/wpa_ctrl_%d", os.Getpid())
+	c.lsockname = fmt.Sprintf("/tmp/wpa_ctrl_%d_%d", os.Getpid(), time.Now().UnixNano())
 	laddr, err := net.ResolveUnixAddr("unixgram", c.lsockname)
 	if err != nil {
 		return err
