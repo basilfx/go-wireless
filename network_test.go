@@ -10,6 +10,7 @@ var pskNet = Network{ID: 0, IDStr: "h", SSID: "gg", PSK: "xx"}
 var pskNet2 = Network{ID: 0, IDStr: "h", SSID: "gg", PSK: "xx", KeyMgmt: "WPA2-TKIP", ScanSSID: true}
 var knwonPSKNet = Network{Known: true, ID: 0, IDStr: "h", SSID: "gg", KeyMgmt: "WPA2-TKIP", ScanSSID: true}
 var openNet = Network{ID: 0, IDStr: "x", SSID: "gg"}
+var accessPointNet = Network{ID: 0, Mode: ModeAccessPoint, IDStr: "y", SSID: "gg", PSK: "xx"}
 
 // func TestNetwork(t *testing.T) {
 // 	Convey("given a blank network", t, func() {
@@ -36,7 +37,6 @@ func TestSetCmds(t *testing.T) {
 
 		Convey("when the set commands are rendered", func() {
 			cmds := setCmds(n)
-			Println(cmds)
 
 			Convey("then it should have the basic fields", func() {
 				So(cmds, ShouldContain, `SET_NETWORK 0 psk "xx"`)
@@ -53,10 +53,11 @@ func TestSetCmds(t *testing.T) {
 
 		Convey("when the set commands are rendered", func() {
 			cmds := setCmds(n)
-			Println(cmds)
 
 			Convey("then it should not contain the PSK", func() {
-				So(len(cmds), ShouldEqual, 3)
+				So(len(cmds), ShouldEqual, 5)
+				So(cmds, ShouldContain, `SET_NETWORK 0 id_str "h"`)
+				So(cmds, ShouldContain, `SET_NETWORK 0 mode 0`)
 				So(cmds, ShouldContain, `SET_NETWORK 0 ssid "gg"`)
 				So(cmds, ShouldContain, `SET_NETWORK 0 key_mgmt WPA2-TKIP`)
 				So(cmds, ShouldContain, `SET_NETWORK 0 scan_ssid 1`)
@@ -68,12 +69,13 @@ func TestSetCmds(t *testing.T) {
 			n.PSK = "horsewaffle"
 			Convey("when the set commands are rendered", func() {
 				cmds := setCmds(n)
-				Println(cmds)
 
 				Convey("then it should not contain the PSK", func() {
-					So(len(cmds), ShouldEqual, 4)
+					So(len(cmds), ShouldEqual, 6)
+					So(cmds, ShouldContain, `SET_NETWORK 0 id_str "h"`)
+					So(cmds, ShouldContain, `SET_NETWORK 0 mode 0`)
 					So(cmds, ShouldContain, `SET_NETWORK 0 psk "horsewaffle"`)
-					So(cmds, ShouldContain, `SET_NETWORK 0 ssid "gg"`)
+
 					So(cmds, ShouldContain, `SET_NETWORK 0 key_mgmt WPA2-TKIP`)
 					So(cmds, ShouldContain, `SET_NETWORK 0 scan_ssid 1`)
 				})
@@ -88,8 +90,27 @@ func TestSetCmds(t *testing.T) {
 			cmds := setCmds(n)
 
 			Convey("then it should have the proper fields", func() {
+				So(len(cmds), ShouldEqual, 4)
+				So(cmds, ShouldContain, `SET_NETWORK 0 id_str "x"`)
+				So(cmds, ShouldContain, `SET_NETWORK 0 mode 0`)
 				So(cmds, ShouldContain, `SET_NETWORK 0 key_mgmt NONE`)
 				So(cmds, ShouldContain, `SET_NETWORK 0 ssid "gg"`)
+			})
+		})
+	})
+
+	Convey("given an access point", t, func() {
+		n := accessPointNet
+
+		Convey("when the set commands are rendered", func() {
+			cmds := setCmds(n)
+
+			Convey("then it should have the proper fields", func() {
+				So(len(cmds), ShouldEqual, 4)
+				So(cmds, ShouldContain, `SET_NETWORK 0 id_str "y"`)
+				So(cmds, ShouldContain, `SET_NETWORK 0 mode 2`)
+				So(cmds, ShouldContain, `SET_NETWORK 0 ssid "gg"`)
+				So(cmds, ShouldContain, `SET_NETWORK 0 psk "xx"`)
 			})
 		})
 	})
